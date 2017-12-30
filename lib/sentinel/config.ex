@@ -11,6 +11,7 @@ defmodule Sentinel.Config do
   end
 
   @doc """
+
   Gettext module to use
   """
   def gettext_module do
@@ -26,6 +27,7 @@ defmodule Sentinel.Config do
   end
 
   @doc """
+
   Wrapper for getting the application config of :confirmable
   """
   def confirmable do
@@ -86,6 +88,28 @@ defmodule Sentinel.Config do
   """
   def invitation_registration_url do
     Application.get_env(:sentinel, :invitation_registration_url)
+  end
+
+  @doc """
+  Checks if guardian_db is present
+  """
+  def guardian_db? do
+    Code.ensure_loaded?(GuardianDb)
+  end
+
+  @doc """
+  Wrapper for the application config that may contain a user's custom
+  password validation changeset
+  """
+  def password_validation do
+    Application.get_env(
+      :sentinel,
+      :password_validation,
+      {
+        Sentinel.PasswordValidator,
+        :default_sentinel_password_validation
+      }
+    )
   end
 
   @doc """
@@ -160,7 +184,7 @@ defmodule Sentinel.Config do
     end)
     |> Enum.map(fn provider_config ->
       {provider, _details} = provider_config
-      {Atom.to_string(provider), router_helper().auth_url(endpoint(), :request, provider)}
+      %{provider: Atom.to_string(provider), url: router_helper().auth_url(endpoint(), :request, provider)}
     end)
   end
 
@@ -206,6 +230,14 @@ defmodule Sentinel.Config do
     Application.get_env(:sentinel, :layout, :app)
   end
 
+  def lockable? do
+    Application.get_env(:sentinel, :lockable, true)
+  end
+
+  def otp_app do
+    Application.get_env(:sentinel, :otp_app)
+  end
+
   @doc """
   Wrapper for getting and merging the application config of :views
   """
@@ -220,6 +252,7 @@ defmodule Sentinel.Config do
       password: Sentinel.PasswordView,
       session: Sentinel.SessionView,
       shared: Sentinel.SharedView,
+      unlock: Sentinel.UnlockView,
       user: Sentinel.UserView
     }
   end
@@ -259,6 +292,9 @@ defmodule Sentinel.Config do
       user_invitation: {:account, :edit},
       user_invitation_error: "/",
       user_invited: {:user, :new},
+      unlock_account: "/",
+      unlock_account_error: "/",
+      unlock_create: "/",
     }
   end
 

@@ -14,12 +14,19 @@ defmodule Mix.Tasks.Sentinel.Gen.Views do
 
     Mix.Phoenix.check_module_name_availability!(binding[:module])
 
-    Mix.Phoenix.copy_from paths(), "priv/templates/views", binding, [
-      {:eex, "#{binding[:singular]}_template.ex", Path.join(views_path(legacy), "#{binding[:path]}.ex")}
-    ]
+    Mix.Phoenix.copy_from(
+      paths(),
+      "priv/templates/views",
+      binding,
+      [{:eex, "#{binding[:singular]}_template.ex", Path.join(views_path(legacy), "#{binding[:path]}.ex")}]
+    )
 
-    Mix.Phoenix.copy_from paths(), "lib/sentinel/web/templates", binding,
+    Mix.Phoenix.copy_from(
+      paths(),
+      "lib/sentinel/web/templates",
+      binding,
       template_files(templates_path(legacy), binding[:singular])
+    )
 
    Mix.shell.info """
 
@@ -31,6 +38,10 @@ defmodule Mix.Tasks.Sentinel.Gen.Views do
             user: MyApp.Web.UserView
           }
     """
+  end
+
+  defp paths do
+    [".", :phoenix, "deps/sentinel", :sentinel]
   end
 
   defp set_bindings(view_module, legacy) do
@@ -95,10 +106,6 @@ defmodule Mix.Tasks.Sentinel.Gen.Views do
     |> Kernel.<>("View")
   end
   defp view_module(name), do: view_module(to_string(name))
-
-  defp paths do
-    [".", :phoenix, "deps/sentinel", :sentinel]
-  end
 
   defp template_files(templates_path, "email_view") do
     [

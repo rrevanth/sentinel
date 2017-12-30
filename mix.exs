@@ -1,13 +1,13 @@
 defmodule Sentinel.Mixfile do
   use Mix.Project
 
-  @version "2.0.2"
+  @version "3.0.0-rc1"
   @source_url "https://github.com/britton-jb/sentinel"
 
   def project do
     [app: :sentinel,
       version: @version,
-      elixir: "~> 1.3",
+      elixir: "~> 1.4",
       elixirc_paths: elixirc_paths(Mix.env),
       compilers: [:phoenix] ++ Mix.compilers,
       package: package(),
@@ -56,35 +56,40 @@ defmodule Sentinel.Mixfile do
 
   defp deps do
     [
-      {:guardian, "~> 0.14.2"},
-      {:guardian_db, "~> 0.8.0", optional: true},
-      {:secure_random, "~> 0.2"},
-      {:bamboo, "~> 0.7"},
-      {:comeonin, "~> 2.0"},
+      {:guardian, "~> 1.0", override: true},
+      {:guardian_db, "~> 1.0", optional: true},
+      {:secure_random, "~> 0.5.1"},
+      {:bamboo, "~> 0.8"},
+      {:comeonin, "~> 4.0"},
+      {:bcrypt_elixir, "~> 1.0"},
 
       {:cowboy, "~> 1.0"},
-      {:phoenix, "~> 1.1"},
-      {:phoenix_html, "~> 2.2"},
-      {:phoenix_ecto, "~> 3.1"},
-      {:ecto, "~> 2.1"},
-      {:postgrex, ">= 0.11.1"},
-      {:jose, "~> 1.4"},
+      {:phoenix, "~> 1.3.0"},
+      {:phoenix_html, "~> 2.10.5"},
+      {:phoenix_ecto, "~> 3.2"},
+      {:ecto, "~> 2.2.7"},
+      {:postgrex, ">= 0.11.1", override: true},
 
-      {:ueberauth, "~> 0.4"},
-      {:ueberauth_identity, "~> 0.2"},
+      {:ueberauth, "~> 0.5"},
+      {:ueberauth_identity, "~> 0.2.3"},
 
       # DEV
-      {:credo, "~> 0.5", only: [:dev, :test]},
       {:ex_doc, ">= 0.0.0", only: :dev},
+      {:dialyxir, github: "jeremyjh/dialyxir", only: [:dev], runtime: false},
+      {:credo, "~> 0.8", only: [:dev, :test]},
+      {:ex_guard, "~> 1.3", only: :dev},
       # TESTING
-      {:mock, "~> 0.1", only: :test},
-      {:ex_machina, "~> 1.0", only: :test},
+      {:mock, "~> 0.8.9", only: :test},
+      {:ex_machina, "~> 2.1.0", only: :test},
+      {:ex_spec, "~> 2.0.1", only: :test},
     ]
   end
 
   defp aliases do
     [
-      "test": ["ecto.drop", "ecto.create --quiet", "ecto.migrate", "test"]
+      "test": ["ecto.drop", "ecto.create --quiet", "ecto.migrate", "test"],
+      "static_analysis": ["credo", "dialyzer"],
+      "precommit": ["test", "static_analysis"]
     ]
   end
 end

@@ -2,13 +2,14 @@ defmodule Mix.Tasks.Sentinel.Gen.Views do
   @moduledoc """
   Used to generate sentinel views for customization
   """
+  @shortdoc "Used to initially setup and configure sentinel"
 
   use Mix.Task
 
   def run(args) do
     view_name = validate_arg!(args)
     view_module = view_module(view_name)
-    legacy = !Kernel.function_exported?(Mix.Phoenix, :web_path, 1)
+    legacy = false
     binding = set_bindings(view_module, legacy)
 
     Mix.Phoenix.check_module_name_availability!(binding[:module])
@@ -62,7 +63,7 @@ defmodule Mix.Tasks.Sentinel.Gen.Views do
     if legacy do
       "web/views"
     else
-      Mix.Phoenix.web_path("views")
+      Mix.Phoenix.web_path(Mix.Phoenix.otp_app(), "views")
     end
   end
 
@@ -70,7 +71,7 @@ defmodule Mix.Tasks.Sentinel.Gen.Views do
     if legacy do
       "web/templates"
     else
-      Mix.Phoenix.web_path("templates")
+      Mix.Phoenix.web_path(Mix.Phoenix.otp_app(), "templates")
     end
   end
 

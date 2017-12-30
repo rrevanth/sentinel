@@ -6,6 +6,7 @@ defmodule Sentinel.Controllers.Html.AuthController do
   use Phoenix.Controller
   alias Sentinel.{AfterRegistrator, Config, RedirectHelper, RegistratorHelper, Ueberauthenticator, Session}
 
+
   plug Ueberauth
   plug :put_layout, {Config.layout_view, Config.layout}
   plug Sentinel.Pipeline when action in [:request, :callback, :create]
@@ -75,6 +76,7 @@ defmodule Sentinel.Controllers.Html.AuthController do
   end
 
   defp confirmable_new_user(conn, user) do
+    permissions = UserHelper.model.permissions(user.id)
     case Config.confirmable do
       :required ->
         conn
@@ -82,20 +84,21 @@ defmodule Sentinel.Controllers.Html.AuthController do
         |> RedirectHelper.redirect_from(:user_create_unconfirmed)
       :false ->
         conn
-        |> Sentinel.Guardian.Plug.sign_in(user)
+        |> Guardian.Plug.sign_in(user, :access, perms: permissions)
         |> put_flash(:info, "Signed up")
         |> RedirectHelper.redirect_from(:user_create)
       _ ->
         conn
-        |> Sentinel.Guardian.Plug.sign_in(user)
+        |> Guardian.Plug.sign_in(user, :access, perms: permissions)
         |> put_flash(:info, "You will receive an email with instructions for how to confirm your email address in a few minutes.")
         |> RedirectHelper.redirect_from(:user_create)
     end
   end
 
   defp existing_user(conn, user) do
+    permissions = UserHelper.model.permissions(user.id)
     conn
-    |> Sentinel.Guardian.Plug.sign_in(user)
+    |> Sentinel.Guardian.Plug.sign_in(user, :access, perms: permissions)
     |> put_flash(:info, "Logged in")
     |> RedirectHelper.redirect_from(:session_create)
   end
@@ -127,8 +130,9 @@ defmodule Sentinel.Controllers.Html.AuthController do
 
     case Ueberauthenticator.ueberauthenticate(auth) do
       {:ok, user} ->
+        permissions = UserHelper.model.permissions(user.id)
         conn
-        |> Sentinel.Guardian.Plug.sign_in(user)
+        |> Sentinel.Guardian.Plug.sign_in(user, :access, perms: permissions)
         |> put_flash(:info, "Logged in")
         |> RedirectHelper.redirect_from(:session_create)
       {:error, error} ->

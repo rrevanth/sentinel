@@ -92,6 +92,7 @@ defmodule Sentinel.Ueberauthenticator do
 
     if is_nil(auth) do
       user = Config.repo.get_by(Config.user_model, email: updated_auth_params.info.email)
+
       if is_nil(user) do
         create_user_and_auth(updated_auth_params, string_uid)
       else

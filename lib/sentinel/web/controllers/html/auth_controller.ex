@@ -9,6 +9,7 @@ defmodule Sentinel.Controllers.Html.AuthController do
   alias Sentinel.RedirectHelper
   alias Sentinel.RegistratorHelper
   alias Sentinel.Ueberauthenticator
+  alias Sentinel.UserHelper
 
   plug Ueberauth
   plug :put_layout, {Config.layout_view, Config.layout}
@@ -53,6 +54,7 @@ defmodule Sentinel.Controllers.Html.AuthController do
         |> put_flash(:info, "Successfully invited user")
         |> RedirectHelper.redirect_from(:user_invited)
       else
+        permissions = UserHelper.model.permissions(user.id)
         case Config.confirmable do
           :required ->
             conn
@@ -60,12 +62,12 @@ defmodule Sentinel.Controllers.Html.AuthController do
             |> RedirectHelper.redirect_from(:user_create_unconfirmed)
           :false ->
             conn
-            |> Guardian.Plug.sign_in(user)
+            |> Guardian.Plug.sign_in(user, :access, perms: permissions)
             |> put_flash(:info, "Signed up")
             |> RedirectHelper.redirect_from(:user_create)
           _ ->
             conn
-            |> Guardian.Plug.sign_in(user)
+            |> Guardian.Plug.sign_in(user, :access, perms: permissions)
             |> put_flash(:info, "You will receive an email with instructions for how to confirm your email address in a few minutes.")
             |> RedirectHelper.redirect_from(:user_create)
         end
@@ -74,8 +76,9 @@ defmodule Sentinel.Controllers.Html.AuthController do
   end
 
   defp existing_user(conn, user) do
+    permissions = UserHelper.model.permissions(user.id)
     conn
-    |> Guardian.Plug.sign_in(user)
+    |> Guardian.Plug.sign_in(user, :access, perms: permissions)
     |> put_flash(:info, "Logged in")
     |> RedirectHelper.redirect_from(:session_create)
   end
@@ -107,8 +110,9 @@ defmodule Sentinel.Controllers.Html.AuthController do
 
     case Ueberauthenticator.ueberauthenticate(auth) do
       {:ok, user} ->
+        permissions = UserHelper.model.permissions(user.id)
         conn
-        |> Guardian.Plug.sign_in(user)
+        |> Guardian.Plug.sign_in(user, :access, perms: permissions)
         |> put_flash(:info, "Logged in")
         |> RedirectHelper.redirect_from(:session_create)
       {:error, _errors} ->
